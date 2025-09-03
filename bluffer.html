@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bluffer - Imposter Word Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 50%, #1a1a1a 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #e0e0e0;
+        }
+
+        .container {
+            background: rgba(40, 40, 40, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            max-width: 800px;
+            width: 90%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(70, 70, 70, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+            color: #ffffff;
+        }
+
+        .subtitle {
+            text-align: center;
+            opacity: 0.8;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+            color: #b0b0b0;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #d0d0d0;
+        }
+
+        input, select, button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        input, select {
+            background: rgba(60, 60, 60, 0.8);
+            color: #e0e0e0;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(80, 80, 80, 0.5);
+        }
+
+        input::placeholder {
+            color: rgba(160, 160, 160, 0.7);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #4a9eff;
+            box-shadow: 0 0 10px rgba(74, 158, 255, 0.3);
+        }
+
+        button {
+            background: linear-gradient(45deg, #4a9eff, #0066cc);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: none;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 158, 255, 0.4);
+        }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            background: rgba(80, 80, 80, 0.6);
+        }
+
+        .player-list {
+            background: rgba(50, 50, 50, 0.6);
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+            border: 1px solid rgba(70, 70, 70, 0.4);
+        }
+
+        .player-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            margin: 0.25rem 0;
+            background: rgba(60, 60, 60, 0.5);
+            border-radius: 5px;
+            color: #e0e0e0;
+        }
+
+        .role-card {
+            background: rgba(50, 50, 50, 0.8);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            margin: 1rem 0;
+            border: 2px solid rgba(70, 70, 70, 0.5);
+        }
+
+        .imposter {
+            border-color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.15);
+        }
+
+        .honest {
+            border-color: #51cf66;
+            background: rgba(81, 207, 102, 0.15);
+        }
+
+        .word-display {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 1rem 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            color: #ffffff;
+        }
+
+        .hint-display {
+            font-size: 1.5rem;
+            margin: 1rem 0;
+            opacity: 0.9;
+            color: #f0f0f0;
+        }
+
+        .timer {
+            text-align: center;
+            font-size: 1.5rem;
+            margin: 1rem 0;
+            font-weight: bold;
+            color: #e0e0e0;
+        }
+
+        .voting-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .vote-button {
+            padding: 1rem;
+            background: rgba(60, 60, 60, 0.6);
+            border: 2px solid rgba(80, 80, 80, 0.5);
+            transition: all 0.3s;
+            color: #e0e0e0;
+        }
+
+        .vote-button:hover {
+            border-color: #51cf66;
+            background: rgba(81, 207, 102, 0.2);
+        }
+
+        .vote-button.selected {
+            border-color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.3);
+        }
+
+        .scores {
+            display: flex;
+            justify-content: space-around;
+            margin: 1rem 0;
+        }
+
+        .score-item {
+            text-align: center;
+            background: rgba(50, 50, 50, 0.6);
+            padding: 1rem;
+            border-radius: 10px;
+            flex: 1;
+            margin: 0 0.5rem;
+            border: 1px solid rgba(70, 70, 70, 0.4);
+        }
+
+        .navigation {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .navigation button {
+            flex: 1;
+        }
+
+        .secondary-btn {
+            background: rgba(80, 80, 80, 0.8) !important;
+            color: #d0d0d0 !important;
+        }
+
+        .secondary-btn:hover {
+            background: rgba(100, 100, 100, 0.8) !important;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4) !important;
+        }
+
+        h2, h3, h4 {
+            color: #ffffff;
+        }
+
+        #clues-list div {
+            background: rgba(60, 60, 60, 0.6) !important;
+            border: 1px solid rgba(80, 80, 80, 0.5);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .voting-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎭 Bluffer</h1>
+        <p class="subtitle">The Ultimate Imposter Word Game</p>
+
+        <!-- Setup Screen -->
+        <div class="screen active" id="setup-screen">
+            <div class="form-group">
+                <label for="player-name">Add Players:</label>
+                <input type="text" id="player-name" placeholder="Enter player name" maxlength="20">
+                <button onclick="addPlayer()">Add Player</button>
+            </div>
+
+            <div class="player-list" id="player-list">
+                <p><strong>Players Added:</strong> <span id="player-count">0</span></p>
+                <div id="players"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="rounds">Rounds to Play:</label>
+                <select id="rounds">
+                    <option value="3">3 Rounds</option>
+                    <option value="5" selected>5 Rounds</option>
+                    <option value="7">7 Rounds</option>
+                    <option value="10">10 Rounds</option>
+                </select>
+            </div>
+
+            <button onclick="startGame()" id="start-btn" disabled>Start Game</button>
+        </div>
+
+        <!-- Pass Phone Screen -->
+        <div class="screen" id="pass-screen">
+            <h2 style="text-align: center; margin-bottom: 2rem;">Round <span id="pass-round">1</span></h2>
+            
+            <div style="text-align: center; padding: 3rem 1rem;">
+                <h2 style="margin-bottom: 2rem;">📱 Pass the Phone</h2>
+                <p style="font-size: 1.3rem; margin-bottom: 2rem;">
+                    Pass the device to <strong id="next-player-name">Player</strong>
+                </p>
+                <p style="opacity: 0.8; margin-bottom: 3rem;">
+                    Make sure they can't see the screen when you hand it over!
+                </p>
+                <button onclick="showPlayerRole()" style="font-size: 1.1rem; padding: 1rem 2rem;">
+                    I'm Ready - Show My Role
+                </button>
+            </div>
+        </div>
+
+        <!-- Role Reveal Screen -->
+        <div class="screen" id="role-screen">
+            <h2 style="text-align: center; margin-bottom: 2rem;">Round <span id="current-round">1</span></h2>
+            
+            <div class="role-card" id="role-card">
+                <h3 id="role-title">Your Role</h3>
+                <div id="role-content"></div>
+            </div>
+
+            <div class="navigation">
+                <button onclick="showNextRole()" id="next-role-btn">Next Player</button>
+                <button onclick="startCluePhase()" id="start-clues-btn" style="display: none;">Start Clue Phase</button>
+            </div>
+        </div>
+
+        <!-- Clue Phase Screen -->
+        <div class="screen" id="clue-screen">
+            <h2 style="text-align: center;">Clue Giving Phase</h2>
+            <div class="timer" id="clue-timer">Give your one-word clues!</div>
+            
+            <div style="text-align: center; margin: 2rem 0;">
+                <p style="font-size: 1.2rem; margin-bottom: 1rem;">
+                    Each player should give a <strong>one-word clue</strong> related to their word/hint.
+                </p>
+                <p style="opacity: 0.8;">
+                    Honest players: Be subtle but helpful<br>
+                    Imposters: Try to blend in!
+                </p>
+            </div>
+
+            <button onclick="startVoting()">Start Voting Phase</button>
+        </div>
+
+        <!-- Voting Screen -->
+        <div class="screen" id="voting-screen">
+            <h2 style="text-align: center;">Who is the Imposter?</h2>
+            
+            <div class="voting-grid" id="voting-grid"></div>
+            
+            <div class="navigation">
+                <button onclick="revealResults()" id="reveal-btn">Reveal Results</button>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div class="screen" id="results-screen">
+            <h2 style="text-align: center;">Round Results</h2>
+            
+            <div id="round-results"></div>
+            
+            <div class="scores" id="score-display">
+                <div class="score-item">
+                    <h3>Honest Team</h3>
+                    <div style="font-size: 2rem;" id="honest-score">0</div>
+                </div>
+                <div class="score-item">
+                    <h3>Imposters</h3>
+                    <div style="font-size: 2rem;" id="imposter-score">0</div>
+                </div>
+            </div>
+            
+            <div class="navigation">
+                <button onclick="nextRound()" id="next-round-btn">Next Round</button>
+                <button onclick="endGame()" id="end-game-btn" style="display: none;">End Game</button>
+            </div>
+        </div>
+
+        <!-- Final Results Screen -->
+        <div class="screen" id="final-screen">
+            <h2 style="text-align: center;">🎉 Game Over!</h2>
+            
+            <div id="final-results"></div>
+            
+            <div class="scores">
+                <div class="score-item">
+                    <h3>Final Score</h3>
+                    <p>Honest Team: <span id="final-honest">0</span></p>
+                    <p>Imposters: <span id="final-imposter">0</span></p>
+                </div>
+            </div>
+            
+            <button onclick="newGame()">New Game</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let players = [];
+        let currentRound = 1;
+        let totalRounds = 5;
+        let currentRoleIndex = 0;
+        let imposters = [];
+        let currentWord = '';
+        let currentHint = '';
+        let votes = {};
+        let scores = { honest: 0, imposter: 0 };
+
+        // Word pairs (word and related hint for imposters)
+        const wordPairs = [
+            // Transportation
+            { word: 'CAR', hint: 'Rubber' },
+            { word: 'AIRPLANE', hint: 'Wings' },
+            { word: 'BICYCLE', hint: 'Wheels' },
+            { word: 'TRAIN', hint: 'Tracks' },
+            { word: 'BOAT', hint: 'Water' },
+            { word: 'MOTORCYCLE', hint: 'Engine' },
+            { word: 'BUS', hint: 'Public' },
+            { word: 'TAXI', hint: 'Yellow' },
+            { word: 'SUBWAY', hint: 'Underground' },
+            { word: 'HELICOPTER', hint: 'Rotor' },
+            
+            // Food & Drinks
+            { word: 'PIZZA', hint: 'Cheese' },
+            { word: 'COFFEE', hint: 'Beans' },
+            { word: 'BURGER', hint: 'Beef' },
+            { word: 'SUSHI', hint: 'Fish' },
+            { word: 'PASTA', hint: 'Wheat' },
+            { word: 'CHOCOLATE', hint: 'Cocoa' },
+            { word: 'SANDWICH', hint: 'Bread' },
+            { word: 'SALAD', hint: 'Lettuce' },
+            { word: 'WINE', hint: 'Grapes' },
+            { word: 'TEA', hint: 'Leaves' },
+            { word: 'CAKE', hint: 'Flour' },
+            { word: 'ICE CREAM', hint: 'Milk' },
+            { word: 'SOUP', hint: 'Broth' },
+            { word: 'TACOS', hint: 'Corn' },
+            { word: 'DONUTS', hint: 'Sugar' },
+            
+            // Technology
+            { word: 'PHONE', hint: 'Screen' },
+            { word: 'COMPUTER', hint: 'Keyboard' },
+            { word: 'TELEVISION', hint: 'Remote' },
+            { word: 'CAMERA', hint: 'Lens' },
+            { word: 'LAPTOP', hint: 'Portable' },
+            { word: 'TABLET', hint: 'Touch' },
+            { word: 'HEADPHONES', hint: 'Audio' },
+            { word: 'MICROPHONE', hint: 'Voice' },
+            { word: 'PRINTER', hint: 'Ink' },
+            { word: 'ROUTER', hint: 'WiFi' },
+            
+            // Animals
+            { word: 'DOG', hint: 'Bark' },
+            { word: 'CAT', hint: 'Meow' },
+            { word: 'ELEPHANT', hint: 'Trunk' },
+            { word: 'LION', hint: 'Roar' },
+            { word: 'FISH', hint: 'Scales' },
+            { word: 'BIRD', hint: 'Feathers' },
+            { word: 'HORSE', hint: 'Hooves' },
+            { word: 'RABBIT', hint: 'Ears' },
+            { word: 'TIGER', hint: 'Stripes' },
+            { word: 'MONKEY', hint: 'Banana' },
+            { word: 'SHARK', hint: 'Teeth' },
+            { word: 'BUTTERFLY', hint: 'Wings' },
+            { word: 'SPIDER', hint: 'Web' },
+            { word: 'SNAKE', hint: 'Slither' },
+            { word: 'PENGUIN', hint: 'Antarctic' },
+            
+            // Places
+            { word: 'SCHOOL', hint: 'Learning' },
+            { word: 'HOSPITAL', hint: 'Medicine' },
+            { word: 'RESTAURANT', hint: 'Food' },
+            { word: 'BEACH', hint: 'Sand' },
+            { word: 'FOREST', hint: 'Trees' },
+            { word: 'MOUNTAIN', hint: 'Peak' },
+            { word: 'DESERT', hint: 'Cactus' },
+            { word: 'LIBRARY', hint: 'Books' },
+            { word: 'MALL', hint: 'Shopping' },
+            { word: 'PARK', hint: 'Grass' },
+            { word: 'MUSEUM', hint: 'Art' },
+            { word: 'THEATER', hint: 'Stage' },
+            { word: 'STADIUM', hint: 'Sports' },
+            { word: 'AIRPORT', hint: 'Terminal' },
+            { word: 'CHURCH', hint: 'Prayer' },
+            
+            // Entertainment
+            { word: 'MOVIE', hint: 'Camera' },
+            { word: 'MUSIC', hint: 'Sound' },
+            { word: 'BOOK', hint: 'Pages' },
+            { word: 'GAME', hint: 'Rules' },
+            { word: 'CONCERT', hint: 'Band' },
+            { word: 'PARTY', hint: 'Celebration' },
+            { word: 'DANCE', hint: 'Rhythm' },
+            { word: 'MAGIC', hint: 'Tricks' },
+            { word: 'CIRCUS', hint: 'Clown' },
+            { word: 'COMEDY', hint: 'Laughter' },
+            
+            // Weather & Nature
+            { word: 'RAIN', hint: 'Clouds' },
+            { word: 'SNOW', hint: 'Winter' },
+            { word: 'THUNDER', hint: 'Lightning' },
+            { word: 'RAINBOW', hint: 'Colors' },
+            { word: 'WIND', hint: 'Breeze' },
+            { word: 'SUN', hint: 'Bright' },
+            { word: 'MOON', hint: 'Night' },
+            { word: 'STARS', hint: 'Sky' },
+            { word: 'OCEAN', hint: 'Salt' },
+            { word: 'RIVER', hint: 'Flow' },
+            { word: 'VOLCANO', hint: 'Lava' },
+            { word: 'EARTHQUAKE', hint: 'Shake' },
+            
+            // Sports & Activities
+            { word: 'FOOTBALL', hint: 'Goal' },
+            { word: 'BASKETBALL', hint: 'Hoop' },
+            { word: 'TENNIS', hint: 'Racket' },
+            { word: 'SWIMMING', hint: 'Pool' },
+            { word: 'RUNNING', hint: 'Marathon' },
+            { word: 'CYCLING', hint: 'Pedal' },
+            { word: 'BOXING', hint: 'Gloves' },
+            { word: 'GOLF', hint: 'Club' },
+            { word: 'SKIING', hint: 'Slopes' },
+            { word: 'SURFING', hint: 'Waves' },
+            
+            // Household Items
+            { word: 'MIRROR', hint: 'Reflection' },
+            { word: 'LAMP', hint: 'Light' },
+            { word: 'CHAIR', hint: 'Sit' },
+            { word: 'TABLE', hint: 'Surface' },
+            { word: 'BED', hint: 'Sleep' },
+            { word: 'REFRIGERATOR', hint: 'Cold' },
+            { word: 'STOVE', hint: 'Heat' },
+            { word: 'VACUUM', hint: 'Clean' },
+            { word: 'CLOCK', hint: 'Time' },
+            { word: 'PILLOW', hint: 'Soft' },
+            
+            // Professions
+            { word: 'DOCTOR', hint: 'Stethoscope' },
+            { word: 'TEACHER', hint: 'Classroom' },
+            { word: 'CHEF', hint: 'Kitchen' },
+            { word: 'PILOT', hint: 'Cockpit' },
+            { word: 'FIREFIGHTER', hint: 'Hose' },
+            { word: 'POLICE', hint: 'Badge' },
+            { word: 'NURSE', hint: 'Hospital' },
+            { word: 'ARTIST', hint: 'Paint' },
+            { word: 'MUSICIAN', hint: 'Instrument' },
+            { word: 'WRITER', hint: 'Pen' },
+            
+            // Events & Occasions
+            { word: 'BIRTHDAY', hint: 'Cake' },
+            { word: 'WEDDING', hint: 'Ring' },
+            { word: 'GRADUATION', hint: 'Diploma' },
+            { word: 'CHRISTMAS', hint: 'Tree' },
+            { word: 'HALLOWEEN', hint: 'Costume' },
+            { word: 'VACATION', hint: 'Travel' },
+            { word: 'FUNERAL', hint: 'Flowers' },
+            { word: 'ANNIVERSARY', hint: 'Years' },
+            { word: 'PICNIC', hint: 'Basket' },
+            { word: 'FESTIVAL', hint: 'Crowd' }
+        ];
+
+        function addPlayer() {
+            const nameInput = document.getElementById('player-name');
+            const name = nameInput.value.trim();
+            
+            if (name && !players.includes(name)) {
+                players.push(name);
+                nameInput.value = '';
+                updatePlayerList();
+            }
+        }
+
+        function updatePlayerList() {
+            const playerList = document.getElementById('players');
+            const playerCount = document.getElementById('player-count');
+            const startBtn = document.getElementById('start-btn');
+            
+            playerCount.textContent = players.length;
+            
+            playerList.innerHTML = players.map((player, index) => 
+                `<div class="player-item">
+                    <span>${player}</span>
+                    <button onclick="removePlayer(${index})" style="width: auto; padding: 5px 10px; background: rgba(255,107,107,0.8);">Remove</button>
+                </div>`
+            ).join('');
+            
+            startBtn.disabled = players.length < 3;
+        }
+
+        function removePlayer(index) {
+            players.splice(index, 1);
+            updatePlayerList();
+        }
+
+        function startGame() {
+            totalRounds = parseInt(document.getElementById('rounds').value);
+            currentRound = 1;
+            scores = { honest: 0, imposter: 0 };
+            startNewRound();
+        }
+
+        function startNewRound() {
+            // Select random word pair
+            const wordPair = wordPairs[Math.floor(Math.random() * wordPairs.length)];
+            currentWord = wordPair.word;
+            currentHint = wordPair.hint;
+            
+            // Assign imposters (1 for 3-6 players, 2 for 7+)
+            const imposterCount = players.length <= 6 ? 1 : 2;
+            imposters = [];
+            
+            const shuffledPlayers = [...players].sort(() => Math.random() - 0.5);
+            for (let i = 0; i < imposterCount; i++) {
+                imposters.push(shuffledPlayers[i]);
+            }
+            
+            currentRoleIndex = 0;
+            votes = {};
+            
+            // Update round numbers on both screens
+            const currentRoundEl = document.getElementById('current-round');
+            const passRoundEl = document.getElementById('pass-round');
+            
+            if (currentRoundEl) currentRoundEl.textContent = currentRound;
+            if (passRoundEl) passRoundEl.textContent = currentRound;
+            
+            // Start with the pass phone screen for the first player
+            showPassScreen();
+        }
+
+        function showPassScreen() {
+            if (currentRoleIndex >= players.length) {
+                startCluePhase();
+                return;
+            }
+            
+            const player = players[currentRoleIndex];
+            const nextPlayerEl = document.getElementById('next-player-name');
+            
+            if (nextPlayerEl) {
+                nextPlayerEl.textContent = player;
+            }
+            
+            showScreen('pass-screen');
+        }
+
+        function showPlayerRole() {
+            const player = players[currentRoleIndex];
+            const isImposter = imposters.includes(player);
+            const roleCard = document.getElementById('role-card');
+            const roleTitle = document.getElementById('role-title');
+            const roleContent = document.getElementById('role-content');
+            
+            roleTitle.textContent = `${player}'s Role`;
+            
+            if (isImposter) {
+                roleCard.className = 'role-card imposter';
+                roleContent.innerHTML = `
+                    <h3 style="color: #ff6b6b;">🕵️ IMPOSTER</h3>
+                    <div class="hint-display">Your hint: "${currentHint}"</div>
+                    <p>Try to blend in and guess the real word!</p>
+                `;
+            } else {
+                roleCard.className = 'role-card honest';
+                roleContent.innerHTML = `
+                    <h3 style="color: #51cf66;">👤 HONEST PLAYER</h3>
+                    <div class="word-display">${currentWord}</div>
+                    <p>Give a subtle clue without being too obvious!</p>
+                `;
+            }
+            
+            showScreen('role-screen');
+        }
+
+        function finishPlayerTurn() {
+            currentRoleIndex++; // Increment BEFORE checking if we're done
+            
+            // Check if all players have seen their roles
+            if (currentRoleIndex >= players.length) {
+                startCluePhase();
+            } else {
+                showPassScreen(); // Show pass screen for next player
+            }
+        }
+
+        function showPassScreen() {
+            if (currentRoleIndex >= players.length) {
+                startCluePhase();
+                return;
+            }
+            
+            const player = players[currentRoleIndex];
+            const nextPlayerEl = document.getElementById('next-player-name');
+            
+            if (nextPlayerEl) {
+                nextPlayerEl.textContent = player;
+            }
+            
+            showScreen('pass-screen');
+        }
+
+        function showPlayerRole() {
+            const player = players[currentRoleIndex];
+            const isImposter = imposters.includes(player);
+            const roleCard = document.getElementById('role-card');
+            const roleTitle = document.getElementById('role-title');
+            const roleContent = document.getElementById('role-content');
+            
+            roleTitle.textContent = `${player}'s Role`;
+            
+            if (isImposter) {
+                roleCard.className = 'role-card imposter';
+                roleContent.innerHTML = `
+                    <h3 style="color: #ff6b6b;">🕵️ IMPOSTER</h3>
+                    <div class="hint-display">Your hint: "${currentHint}"</div>
+                    <p>Try to blend in and guess the real word!</p>
+                `;
+            } else {
+                roleCard.className = 'role-card honest';
+                roleContent.innerHTML = `
+                    <h3 style="color: #51cf66;">👤 HONEST PLAYER</h3>
+                    <div class="word-display">${currentWord}</div>
+                    <p>Give a subtle clue without being too obvious!</p>
+                `;
+            }
+            
+            showScreen('role-screen');
+        }
+
+        function showNextRole() {
+            // Fixed: This now properly calls finishPlayerTurn
+            finishPlayerTurn();
+        }
+
+        function startCluePhase() {
+            showScreen('clue-screen');
+        }
+
+        function startVoting() {
+            const votingGrid = document.getElementById('voting-grid');
+            
+            votingGrid.innerHTML = players.map(player => 
+                `<button class="vote-button" onclick="vote('${player}')" data-player="${player}">
+                    ${player}
+                </button>`
+            ).join('');
+            
+            showScreen('voting-screen');
+        }
+
+        function vote(player) {
+            const buttons = document.querySelectorAll('.vote-button');
+            buttons.forEach(btn => {
+                if (btn.dataset.player === player) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
+            });
+            
+            votes.selectedPlayer = player;
+        }
+
+        function revealResults() {
+            if (!votes.selectedPlayer) {
+                alert('Please vote for someone first!');
+                return;
+            }
+            
+            const resultsDiv = document.getElementById('round-results');
+            const votedPlayer = votes.selectedPlayer;
+            const wasCorrect = imposters.includes(votedPlayer);
+            
+            let resultHTML = `
+                <div style="text-align: center; margin: 2rem 0;">
+                    <h3>The vote was for: <strong>${votedPlayer}</strong></h3>
+                    <h3>The actual imposter(s): <strong>${imposters.join(', ')}</strong></h3>
+                    <h3>The secret word was: <strong>${currentWord}</strong></h3>
+                    <br>
+            `;
+            
+            if (wasCorrect) {
+                scores.honest++;
+                resultHTML += `<p style="color: #51cf66; font-size: 1.5rem;">✅ Honest team wins this round!</p>`;
+            } else {
+                scores.imposter++;
+                resultHTML += `<p style="color: #ff6b6b; font-size: 1.5rem;">🕵️ Imposters win this round!</p>`;
+            }
+            
+            resultHTML += '</div>';
+            resultsDiv.innerHTML = resultHTML;
+            
+            document.getElementById('honest-score').textContent = scores.honest;
+            document.getElementById('imposter-score').textContent = scores.imposter;
+            
+            const nextBtn = document.getElementById('next-round-btn');
+            const endBtn = document.getElementById('end-game-btn');
+            
+            if (currentRound >= totalRounds) {
+                nextBtn.style.display = 'none';
+                endBtn.style.display = 'block';
+            }
+            
+            showScreen('results-screen');
+        }
+
+        function nextRound() {
+            currentRound++;
+            startNewRound();
+        }
+
+        function endGame() {
+            const finalResults = document.getElementById('final-results');
+            const honestWins = scores.honest;
+            const imposterWins = scores.imposter;
+            
+            let winner = '';
+            if (honestWins > imposterWins) {
+                winner = '👥 Honest Team Wins!';
+            } else if (imposterWins > honestWins) {
+                winner = '🕵️ Imposters Win!';
+            } else {
+                winner = '🤝 It\'s a Tie!';
+            }
+            
+            finalResults.innerHTML = `
+                <div style="text-align: center; margin: 2rem 0;">
+                    <h2 style="font-size: 2.5rem; margin-bottom: 1rem;">${winner}</h2>
+                    <p style="font-size: 1.2rem;">Thanks for playing!</p>
+                </div>
+            `;
+            
+            document.getElementById('final-honest').textContent = scores.honest;
+            document.getElementById('final-imposter').textContent = scores.imposter;
+            
+            showScreen('final-screen');
+        }
+
+        function newGame() {
+            players = [];
+            currentRound = 1;
+            scores = { honest: 0, imposter: 0 };
+            updatePlayerList();
+            showScreen('setup-screen');
+        }
+
+        function showScreen(screenId) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            // Show the target screen
+            const targetScreen = document.getElementById(screenId);
+            if (targetScreen) {
+                targetScreen.classList.add('active');
+            } else {
+                console.error(`Screen with ID '${screenId}' not found`);
+            }
+        }
+
+        // Allow Enter key to add players
+        document.getElementById('player-name').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                addPlayer();
+            }
+        });
+    </script>
+</body>
+</html>
